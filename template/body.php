@@ -3,72 +3,404 @@ function my_plugin_scripts() {
     ?>
 <script>
 
+
+// Calculation for investment Details
+function calculateInvestment(initial_investment, interest_rate, interest_period, interest_year, interest_month) {
+    let compound_interval = document.getElementById('compound_interval').value;
+    let compound_int;
+    // Use a switch statement for cleaner mapping of interval to frequency
+  switch (compound_interval) {
+    case 'yearly-1':
+      compound_int = 1;
+      break;
+    case 'yearly-2':
+      compound_int = 2;
+      break;
+    case 'quarterly-4':
+      compound_int = 4;
+      break;
+    case 'monthly-6':
+      compound_int = 6;
+      break;
+    case 'monthly-12':
+      compound_int = 12;
+      break;
+    case 'monthly-24':
+      compound_int = 24;
+      break;
+    case 'weekly-26':
+      compound_int = 26;
+      break;
+    case 'weekly-52':
+      compound_int = 52;
+      break;
+    case 'weekly-140':
+      compound_int = 140;
+      break;
+    case 'daily-365':
+      compound_int = 365;
+      break;
+    case 'daily-360':
+      compound_int = 360;
+      break;
+    default:
+      // Handle invalid interval (optional)
+      console.error("Invalid compound interval:", compound_interval);
+      break;
+  }
+
+  let int_period = document.getElementById('interest_period').value;
+  let int_period_value;
+  switch(int_period) {
+    case 'Daily':
+      int_period_value = 365;
+      break;
+    case 'Weekly':
+      int_period_value = 52;
+      break;
+    case 'Monthly':
+      int_period_value = 12;
+      break;
+    case 'Quarterly':
+      int_period_value = 4;
+      break;
+    case 'Yearly':
+      int_period_value = 1;
+      break;
+    default:
+      // Handle invalid interval (optional)
+      console.warn("Invalid interest period:", int_period);
+      break;
+  }
+
+    interest_month > 0 ? interest_month = parseInt(interest_month) : interest_month = 0
+
+    console.log("compound_interval", compound_int, "type of", typeof(compound_int))
+    console.log("interest_period", int_period_value, "type of", typeof(int_period_value))
+    
+    // Convert years and months to total months
+    let totalMonths = parseInt(interest_year) * int_period_value + parseInt(interest_month);
+    console.log("1st total months", totalMonths)
+
+     // Convert annual interest rate to decimal and monthly interest rate
+    let effectiveRate = interest_rate / 100;
+    console.log("effective rate", effectiveRate)
+    
+
+    let monthlyInterestRate = effectiveRate / compound_int;
+    console.log("monthly interest rate", monthlyInterestRate)
+
+    // Calculate total number of compounding periods
+    let numberOfPeriods = totalMonths * compound_int;
+    console.log("number of periods", numberOfPeriods)
+
+    // Calculate Compound Amount
+    let compoundAmount = initial_investment * Math.pow(1 + monthlyInterestRate, numberOfPeriods);
+    console.log("compound amount", compoundAmount)
+
+    // Calculate total interest earned
+    let totalInterest = compoundAmount - initial_investment;
+    console.log("total interest", totalInterest)
+
+    // Calculate all-time rate of return (RoR)
+    // let rateOfReturn = ((compoundAmount - initial_investment) / initial_investment) * 100;
+    let rateOfReturn = (totalInterest / initial_investment) * 100;
+    console.log("rate of return", rateOfReturn)
+
+    // Calculate APY
+    let apy = Math.pow(1 + effectiveRate / compound_int, compound_int) - 1;
+    apy *= 100; // convert to percentage
+    console.log("apy", apy)
+
+    // Prepare data for yearly table rows
+    let tableData = [];
+    let currentBalance = initial_investment;
+    let accruedInterest = 0;
+    
+    // Row for initial investment details
+    tableData.push({
+        year: 0,
+        interest: '-',
+        accruedInterest: '-',
+        balance: initial_investment
+    });
+    
+    let months = (parseInt(interest_year) * 12) + parseInt(interest_month);
+    console.log("total months", months);
+
+
+    let year = parseInt(interest_year);
+    year = parseInt(interest_month) > 0 ? year+1 : year;
+    console.log("year", year);
+    // Rows for each interest year starting from the second year
+for (let i = 1; i <= year; i++) {
+    let monthsInYear = 12; // Total months in a year
+    if (i === year && interest_month > 0) {
+        monthsInYear = interest_month; // Update months for the last year
+        console.log("mothsYear", monthsInYear)
+        let cons = interest_month > 0 ? monthsInYear = parseInt(interest_month) : monthsInYear = 0
+        console.log("cons", cons)
+    }
+    let months = (i - 1) * 12 + monthsInYear; // Calculate total months up to this year
+    console.log("Total months for year", i, ":", months);
+    console.log("months year in out side", monthsInYear)
+    let compound_amnt = currentBalance * Math.pow(1 + monthlyInterestRate, monthsInYear);
+    let interestEarned = (compound_amnt - currentBalance).toFixed(2);
+    accruedInterest += parseFloat(interestEarned);
+    currentBalance = (parseFloat(currentBalance) + parseFloat(interestEarned)).toFixed(2);
+    
+    tableData.push({
+        year: i,
+        interest: interestEarned,
+        accruedInterest: accruedInterest.toFixed(2),
+        balance: currentBalance
+    });
+}
+
+    console.log("tableData", tableData)
+
+    // monthly interest table
+    let monthlyTableData = [];
+    let monthlyAccruedInterest = 0;
+    let monthlyCurrentBalance = initial_investment;
+
+    monthlyTableData.push({
+        month: 0,
+        interest: '-',
+        accruedInterest: '-',
+        balance: initial_investment
+    });
+
+
+    // Rows for each month
+    for (let i = 1; i <= months; i++) {
+        let monthlyInterestEarned = (monthlyCurrentBalance * monthlyInterestRate).toFixed(2);
+        monthlyAccruedInterest += parseFloat(monthlyInterestEarned);
+        monthlyCurrentBalance = (parseFloat(monthlyCurrentBalance) + parseFloat(monthlyInterestEarned)).toFixed(2);
+
+        monthlyTableData.push({
+            month: i,
+            interest: monthlyInterestEarned,
+            accruedInterest: monthlyAccruedInterest.toFixed(2),
+            balance: monthlyCurrentBalance
+        });
+    }
+
+    console.log("monthly interest table", monthlyTableData)
+
+
+    return {
+        futureValue: compoundAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}), // Format with thousands separators and two decimal places
+        totalInterest: totalInterest.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}), // Format with thousands separators and two decimal places
+        rateOfReturn: rateOfReturn.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + "%", // Rounded to 2 decimal places and formatted as percentage
+        apy: apy.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + "%", // APY formatted as percentage
+        tableData: tableData,
+        monthlyTableData: monthlyTableData
+    };
+
+}
+
+// main calculate function
 function calculate() {
     // Get the initial investment value from the input field
-    let initial_investment = document.getElementById('initial_investment').value;
-    let interest_rate = document.getElementById('interest_rate').value;
+    let initial_investment = parseFloat(document.getElementById('initial_investment').value);
+    let initial_balance = initial_investment.toFixed(2);
+    let interest_rate = parseFloat(document.getElementById('interest_rate').value);
     let interest_period = document.getElementById('interest_period').value;
-    let interest_year = document.getElementById('interest_year').value; 
-    let interest_month = document.getElementById('interest_month').value;
-
-    // let compound_interval = document.getElementById('compound_interval');
-    // if(compound_interval.value == 'monthly-12'){
-    //     compount_interval = 12;
-    // }
+    let interest_year = parseFloat(document.getElementById('interest_year').value); 
+    let interest_month = parseFloat(document.getElementById('interest_month').value);
+    let compound_interval = document.getElementById('compound_interval').value;
 
     // Investment Details
-    let investmentDetails = calculateInvestment(initial_investment, interest_rate, interest_period, interest_year, interest_month);
+    let investmentDetails = calculateInvestment(initial_balance, interest_rate, interest_period, interest_year, interest_month, compound_interval);
     
-    console.log("Future Investment Value: $" + investmentDetails.futureValue);
-    console.log("Total Interest Earned: $" + investmentDetails.totalInterest);
-    console.log("All-Time Rate of Return (RoR): " + investmentDetails.rateOfReturn);
+    // console.log("Future Investment Value: $" + investmentDetails.futureValue);
+    // console.log("Total Interest Earned: $" + investmentDetails.totalInterest);
+    // console.log("All-Time Rate of Return (RoR): " + investmentDetails.rateOfReturn);
+    // console.log("Annual Percentage Yield (APY): " + investmentDetails.apy);
+    // console.log("table data", investmentDetails.tableData);
+
+    // // Access the table body
+    let tableBody = document.getElementById("tbody");
+    // Clear existing table rows
+    tableBody.innerHTML = "";
+
+        // Populate table rows with tableData
+        investmentDetails.tableData.forEach((data, index) => {
+        let row = document.createElement("tr");
+        row.style.height = "45px";
+        row.style.backgroundColor = "#ffffff";
+        // Check if it's the last row
+        if (index === investmentDetails.tableData.length - 1) {
+            row.style.backgroundColor = "#132813"; // Apply special background color to the last row
+            row.style.color = "#ffffff"; // Text color for the last row
+            row.style.height = "45px";
+        }
+        row.innerHTML = `
+            <td class="text-center border-b">${data.year}</td>
+            <td class="text-left border-b pl-6">${data.interest > 0 ? '$' + data.interest : '-'}</td>
+            <td class="text-left border-b pl-6">${data.accruedInterest > 0 ? '$' + data.accruedInterest : '-'}</td>
+            <td class="text-left border-b pl-6">$${data.balance}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    let monthTable = document.getElementById("month_tbody");
+    // Clear existing table rows
+    monthTable.innerHTML = "";
+
+    // Populate table rows with tableData
+    investmentDetails.monthlyTableData.forEach((data, index) => {
+        let row = document.createElement("tr");
+        row.style.height = "45px";
+        row.style.backgroundColor = "#ffffff";
+        if (index !== 0) { // Exclude the first row
+        row.style.color = (index) % 12 === 0 || index === investmentDetails.monthlyTableData.length - 1 ? "#ffffff" : "#000000";
+        }
+        if (index !== 0) { // Exclude the first row
+        row.style.backgroundColor = (index) % 12 === 0 || index === investmentDetails.monthlyTableData.length - 1 ? "#132813" : "#ffffff";
+        }
+        row.innerHTML = `
+            <td class="text-center border-b">${data.month}</td>
+            <td class="text-left border-b pl-6">${data.interest > 0 ? '$' + data.interest : '-'}</td>
+            <td class="text-left border-b pl-6">${data.accruedInterest > 0 ? '$' + data.accruedInterest : '-'}</td>
+            <td class="text-left border-b pl-6">$${data.balance}</td>
+        `
+        monthTable.appendChild(row);
+    });
+
 
 
     // to Display value
     document.getElementById('interest_year_value').textContent = interest_year;
-    document.getElementById('interest_month_value').textContent = interest_month;
+    document.getElementById('interest_month_value').textContent = interest_month > 0 ? interest_month + ' ' + 'Months' : '';
     document.getElementById('interest_rate_value').textContent = interest_rate;
     document.getElementById('interest_period_value').textContent = interest_period;
     document.getElementById('future_value').textContent = investmentDetails.futureValue;
     document.getElementById('total_interest_earned').textContent = investmentDetails.totalInterest;
     document.getElementById('ror').textContent = investmentDetails.rateOfReturn;
-    document.getElementById('initial_balance').textContent = "$" + initial_investment;
+    document.getElementById('initial_balance').textContent = initial_balance;
+
+    // Summary Details
+    switch (compound_interval) {
+    case 'yearly-1':
+      compound_int = 'Yearly (1/yr)';
+      break;
+    case 'yearly-2':
+      compound_int = 'Half-Yearly (2/yr)';
+      break;
+    case 'quarterly-4':
+      compound_int = 'Quarterly (4/yr)';
+      break;
+    case 'monthly-6':
+      compound_int = 'Bi-Monthly (6/yr)';
+      break;
+    case 'monthly-12':
+      compound_int = 'Monthly (12/yr)';
+      break;
+    case 'monthly-24':
+      compound_int = 'Semi-Monthly (24/yr)';
+      break;
+    case 'weekly-26':
+      compound_int = 'Bi-Weekly (26/yr)';
+      break;
+    case 'weekly-52':
+      compound_int = 'Weekly (52/yr)';
+      break;
+    case 'weekly-140':
+      compound_int = 'Semi-Weekly (140/yr)';
+      break;
+    case 'daily-365':
+      compound_int = 'Daily (365/yr)';
+      break;
+    case 'daily-360':
+      compound_int = 'Daily (360/yr)';
+      break;
+    default:
+      // Handle invalid interval (optional)
+      console.error("Invalid compound interval:", compound_interval);
+      break;
+  }
+    //summary
+    document.getElementById('summary_initial_deposit').textContent = '$' + initial_balance;
+    document.getElementById('summary_interest_rate').textContent = interest_rate + '%';
+    document.getElementById('summary_effective_rate').textContent = investmentDetails.apy;
+    document.getElementById('summary_time').textContent = interest_year + ' Years'+ ' ' + (interest_month > 0 ? interest_month + ' Months' : '');
+    document.getElementById('summary_compounding').textContent = compound_int;
 
 }
 
-// Calculation for investment Details
-function calculateInvestment(initial_investment, interest_rate, interest_period, interest_year, interest_month) {
-    let compound_interval = document.getElementById('compound_interval');
-    if(compound_interval.value == 'monthly-12'){
-        compount_interval = 12;
+function toggleSummary() {
+    var summary = document.getElementById("summary_container");
+    var summary_svg = document.getElementById("summary_svg");
+    summary.style.display = summary.style.display === "none" ? "block" : "none";
+    summary_svg.style.stroke = summary.style.display === "none" ? "#B9B9B9" : "#61CE70";
+}
+
+function toggleChart() {
+
+    // Get the canvas element
+    let canvas = document.getElementById('myChart');
+
+    // Remove the chart instance if it exists
+    if (window.myChart) {
+        // Remove reference to the chart instance
+        delete window.myChart;
+        
+        // Clear the canvas
+        canvas.width = canvas.width;
+        canvas.height = canvas.height;
     }
-    // Convert years and months to total months
-    let totalMonths = interest_year * 12 + interest_month;
 
-    // Convert annual interest rate to decimal and monthly interest rate
-    let monthlyInterestRate = (interest_rate / 100) / compount_interval;    //12 is compound interval
+    // Now, you can create a new chart instance on the canvas
+    window.myChart = new Chart(canvas, {
+        // Chart configuration options...
+        data: {
+        datasets: [{
+            type: 'bar',
+            label: 'Bar Dataset',
+            data: [10, 20, 30, 40]
+        }, {
+            type: 'line',
+            label: 'Line Dataset',
+            data: [50, 50, 50, 50],
+        }],
+        labels: ['January', 'February', 'March', 'April']
+    },
+    });
 
-    // Calculate total number of compounding periods
-    let numberOfPeriod = totalMonths
+ 
 
-    //Calculate Compound Amount
-    let compoundAmount = initial_investment * Math.pow(1 + monthlyInterestRate, numberOfPeriod);
+    var breakdown = document.getElementById("breakdown");
+    let chart = document.getElementById("chart");
+    var table = document.getElementById("table");
+    var table_svg = document.getElementById("table_svg");
+    var chart_svg = document.getElementById("chart_svg");
+    var monthlyTable = document.getElementById("month_data_table");
 
-    // Calculate total interest earned
-    let totalInterest = compoundAmount - initial_investment;
-
-    // Calculate all-time rate of return (RoR)
-    let rateOfReturn = ((compoundAmount - initial_investment) / initial_investment) * 100;
-
-    return {
-        futureValue: compoundAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}), // Format with thousands separators and two decimal places
-        totalInterest: totalInterest.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}), // Format with thousands separators and two decimal places
-        rateOfReturn: rateOfReturn.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + "%" // Rounded to 2 decimal places and formatted as percentage
-    };
-
+    table.style.display = "none";
+    chart.style.display = "block";
+    monthlyTable.style.display = "none";
+    breakdown.style.display = "none";
+    breakdown.style.color = "#132813";
+    breakdown.style.font = "24px"
+    table_svg.style.stroke = "#B9B9B9";
+    chart_svg.style.stroke = "#61CE70";
 }
 
+function toggleTable() {
+    var table = document.getElementById("table");
+    var chart = document.getElementById("chart");
+    var breakdown = document.getElementById("breakdown");
+    var table_svg = document.getElementById("table_svg");
+    var chart_svg = document.getElementById("chart_svg");
 
+    table.style.display = "block";
+    chart.style.display = "none";
+    breakdown.style.display = "block";
+    table_svg.style.stroke = "#61CE70";
+    chart_svg.style.stroke = "#B9B9B9";
+}
 
 function changeStyle(currency) {
     // Reset all elements to default style
@@ -153,6 +485,9 @@ function changeContribution(contribution) {
 }
 
 function changePeriod(period) {
+    let breakdown = document.getElementById("breakdown_option");
+    let yearTable = document.getElementById("year_table");
+    let monthTable = document.getElementById("month_table");
     // Reset all elements to default style
     let periods = ["monthly", "yearly"];
     periods.forEach(function(per) {
@@ -168,6 +503,20 @@ function changePeriod(period) {
         selectedElement.style.backgroundColor = '#132813';
         selectedElement.style.color = '#ffffff';
     }
+
+    let month = periods[0]
+    let year = periods[1]
+
+    if (month == period) {
+        breakdown.textContent = "Monthly";
+        yearTable.style.display = "none";
+        monthTable.style.display = "block";
+    }else if (year == period) {
+        breakdown.textContent = "Yearly";
+        yearTable.style.display = "block";
+        monthTable.style.display = "none";
+    }
+    
 }
 
 function changeDepositPeriod(deposit_period) {
@@ -188,6 +537,60 @@ function changeDepositPeriod(deposit_period) {
     }
 }
 
+
+function copyFutureValue() {
+    // Get the copy icon element
+    const copyIcon = document.getElementById("copy_future_value");
+    console.log("copy icon working")
+    // Get the future value element
+    const futureValueElement = document.getElementById("future_value");
+    // Create a temporary textarea element to copy the text
+    const tempTextarea = document.createElement("textarea");
+    tempTextarea.value = futureValueElement.innerText;
+    document.body.appendChild(tempTextarea);
+    // Select and copy the text
+    tempTextarea.select();
+    document.execCommand("copy");
+    // Remove the temporary textarea
+    document.body.removeChild(tempTextarea);
+    // Display "Copied" text as a tooltip-like indicator
+    copyIcon.style.fill = "#61CE70"; // Change SVG color to #61CE70
+    setTimeout(() => {
+        copyIcon.style.fill = "#BEBEBE"; // Change SVG color back to default
+    }, 2000);
+}
+
+function copyTotalInterest() {
+    // Get the copy icon element
+    const copyIcon = document.getElementById("copy_total_interest");
+    console.log("copy icon working")
+    // Get the future value element
+    const totalInterestElement = document.getElementById("total_interest_earned");
+    // Create a temporary textarea element to copy the text
+    const tempTextarea = document.createElement("textarea");
+    tempTextarea.value = totalInterestElement.innerText;
+    document.body.appendChild(tempTextarea);
+    // Select and copy the text
+    tempTextarea.select();
+    document.execCommand("copy");
+    // Remove the temporary textarea
+    document.body.removeChild(tempTextarea);
+    // Display "Copied" text as a tooltip-like indicator
+    copyIcon.style.fill = "#61CE70"; // Change SVG color to #61CE70
+    setTimeout(() => {
+        copyIcon.style.fill = "#BEBEBE"; // Change SVG color back to default
+    }, 2000);total_interest_earned
+}
+
+
+// Add event listener to compound interval select box
+document.getElementById('compound_interval').addEventListener('change', updateInterestPeriod);
+
+// Add event listener to interest period select box
+document.getElementById('deposit_period').addEventListener('change', updateCompoundInterval);
+
+
+
 </script>
 <?php
 }
@@ -203,6 +606,7 @@ function changeDepositPeriod(deposit_period) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap">
     <title>Document</title>
 
@@ -221,6 +625,24 @@ function changeDepositPeriod(deposit_period) {
         .flex {
             display: flex;
         }
+
+        .summary-container {
+            display: none;
+        }
+
+    ::-webkit-scrollbar {
+        display: none;
+        scrollbar-width: none;
+        /* background-color: #ffffff; */
+    }
+
+    ::-webkit-scrollbar-track {
+        background-color: none;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: none;
+    }
     </style>
 </head>
 
@@ -298,12 +720,12 @@ function changeDepositPeriod(deposit_period) {
                         <div class="px-[24px] flex">
                             <div class="pr-3">
                                 <p class="pt-[28px] text-[16px] text-[#000000] font-normal">Years :</p>
-                                <input type="number" value="5" id="interest_year"
+                                <input type="number" value="5" id="interest_year" min="0" max="200" oninput="validity.valid||(value='');"
                                     class="mt-[16px] text-[#132813] outline-none px-[15px] w-full bg-[#EBEBEB] h-[50px] rounded-[8px]">
                             </div>
                             <div class="pl-3">
                                 <p class="pt-[28px] text-[16px] text-[#000000] font-normal">Month :</p>
-                                <input type="number" placeholder="0" id="interest_month"
+                                <input type="number" placeholder="0" id="interest_month" min="0" max="12" step="1" oninput="validity.valid||(value='');"
                                     class="mt-[16px] text-[#132813] outline-none px-[15px] w-full bg-[#EBEBEB] h-[50px] rounded-[8px]">
                             </div>
                         </div>
@@ -456,17 +878,17 @@ function changeDepositPeriod(deposit_period) {
                                 <div class="pr-3 w-6/12">
                                     <select id="compound_interval"
                                         class="mt-[16px] text-[#132813] outline-none px-[15px] w-full bg-[#EBEBEB] h-[50px] rounded-[8px]">
-                                        <option value="">Daily (365/yr)</option>
-                                        <option value="">Daily (360/yr)</option>
-                                        <option value="">Semi-Weekly (140/yr)</option>
-                                        <option value="">Weekly (52/yr)</option>
-                                        <option value="">Bi-Weekly (26/yr)</option>
-                                        <option value="">Semi-Monthly (24/yr)</option>
+                                        <option value="daily-365">Daily (365/yr)</option>
+                                        <option value="daily-360">Daily (360/yr)</option>
+                                        <option value="weekly-140">Semi-Weekly (140/yr)</option>
+                                        <option value="weekly-52">Weekly (52/yr)</option>
+                                        <option value="weekly-26">Bi-Weekly (26/yr)</option>
+                                        <option value="monthly-24">Semi-Monthly (24/yr)</option>
                                         <option value="monthly-12" selected>Monthly (12/yr)</option>
-                                        <option value="">Bi-Monthly (6/yr)</option>
-                                        <option value="">Quarterly (4/yr)</option>
-                                        <option value="">Half-Yearly (2/yr)</option>
-                                        <option value="">Yearly (1/yr)</option>
+                                        <option value="monthly-6">Bi-Monthly (6/yr)</option>
+                                        <option value="quarterly-4">Quarterly (4/yr)</option>
+                                        <option value="yearly-2">Half-Yearly (2/yr)</option>
+                                        <option value="yearly-1">Yearly (1/yr)</option>
                                     </select>
                                 </div>
                                 <div onclick="calculate()" class="pl-3 w-6/12 cursor-pointer">
@@ -494,7 +916,7 @@ function changeDepositPeriod(deposit_period) {
                             <p class="">Interest Calculation For <span id="interest_year_value">5</span> Years
                             </p>
                             <div class="flex items-center ml-2">
-                                <p><span id="interest_month_value">0</span> Months</p>
+                                <p id="interest_month_value"></p>
                             </div>
                         </div>
                         <!---Line--->
@@ -512,10 +934,14 @@ function changeDepositPeriod(deposit_period) {
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td class="text-[28px] pt-4 text-[#61CE70EE] leading-[34px] font-bold"><span id="future_value">$6,416.79</span>
+                                        <td class="text-[28px] pt-4 text-[#61CE70EE] leading-[34px] font-bold">
+                                            <div class="flex">
+                                                <p class="currency mr-1">$</p>
+                                                <p id="future_value">6,416.79</p>
+                                            </div>
                                         </td>
                                         <td class="pt-4">
-                                            <svg width="25" height="25" viewBox="0 0 25 25" fill="none"
+                                            <svg onclick="copyFutureValue()"  class="cursor-pointer" id="copy_future_value" width="25" height="25" viewBox="0 0 25 25" fill="none"
                                                 xmlns="http://www.w3.org/2000/svg">
                                                 <path
                                                     d="M23.8438 0.125H7.34375C7.07025 0.125 6.80794 0.233649 6.61455 0.427046C6.42115 0.620443 6.3125 0.882746 6.3125 1.15625V6.3125H1.15625C0.882746 6.3125 0.620443 6.42115 0.427046 6.61455C0.233649 6.80794 0.125 7.07025 0.125 7.34375V23.8438C0.125 24.1173 0.233649 24.3796 0.427046 24.573C0.620443 24.7664 0.882746 24.875 1.15625 24.875H17.6562C17.9298 24.875 18.1921 24.7664 18.3855 24.573C18.5789 24.3796 18.6875 24.1173 18.6875 23.8438V18.6875H23.8438C24.1173 18.6875 24.3796 18.5789 24.573 18.3855C24.7664 18.1921 24.875 17.9298 24.875 17.6562V1.15625C24.875 0.882746 24.7664 0.620443 24.573 0.427046C24.3796 0.233649 24.1173 0.125 23.8438 0.125ZM16.625 22.8125H2.1875V8.375H16.625V22.8125ZM22.8125 16.625H18.6875V7.34375C18.6875 7.07025 18.5789 6.80794 18.3855 6.61455C18.1921 6.42115 17.9298 6.3125 17.6562 6.3125H8.375V2.1875H22.8125V16.625Z"
@@ -543,10 +969,14 @@ function changeDepositPeriod(deposit_period) {
                                 </thead>
                                 <tbody>
                                     <tr class="">
-                                        <td class="text-[28px] pt-4 text-[#BA924A] leading-[34px] font-bold"><span id="total_interest_earned">$1,416.79</span>
+                                        <td class="text-[28px] pt-4 text-[#BA924A] leading-[34px] font-bold">
+                                            <div class="flex">
+                                                <p class="currency pr-1">$</p>
+                                                <p id="total_interest_earned">1,416.79</p>
+                                            </div>
                                         </td>
                                         <td class="pt-4">
-                                            <svg width="25" height="25" viewBox="0 0 25 25" fill="none"
+                                            <svg onclick="copyTotalInterest()" class="cursor-pointer" id="copy_total_interest" width="25" height="25" viewBox="0 0 25 25" fill="none"
                                                 xmlns="http://www.w3.org/2000/svg">
                                                 <path
                                                     d="M23.8438 0.125H7.34375C7.07025 0.125 6.80794 0.233649 6.61455 0.427046C6.42115 0.620443 6.3125 0.882746 6.3125 1.15625V6.3125H1.15625C0.882746 6.3125 0.620443 6.42115 0.427046 6.61455C0.233649 6.80794 0.125 7.07025 0.125 7.34375V23.8438C0.125 24.1173 0.233649 24.3796 0.427046 24.573C0.620443 24.7664 0.882746 24.875 1.15625 24.875H17.6562C17.9298 24.875 18.1921 24.7664 18.3855 24.573C18.5789 24.3796 18.6875 24.1173 18.6875 23.8438V18.6875H23.8438C24.1173 18.6875 24.3796 18.5789 24.573 18.3855C24.7664 18.1921 24.875 17.9298 24.875 17.6562V1.15625C24.875 0.882746 24.7664 0.620443 24.573 0.427046C24.3796 0.233649 24.1173 0.125 23.8438 0.125ZM16.625 22.8125H2.1875V8.375H16.625V22.8125ZM22.8125 16.625H18.6875V7.34375C18.6875 7.07025 18.5789 6.80794 18.3855 6.61455C18.1921 6.42115 17.9298 6.3125 17.6562 6.3125H8.375V2.1875H22.8125V16.625Z"
@@ -584,7 +1014,12 @@ function changeDepositPeriod(deposit_period) {
                         </div>
                         <div class="pt-4 px-6">
                             <p class="text-[16px]">Initial balance</p>
-                            <p class="text-[28px] text-[#132815] font-bold" id="initial_balance">$ 5,000</p>
+                            <div class="text-[28px] text-[#132815] font-bold">
+                                <div class="flex">
+                                    <p class="currency pr-1">$</p>
+                                    <p id="initial_balance">5000.00</p>
+                                </div>
+                            </div>
                         </div>
                         <!---Line--->
                         <div class="mt-[24px] px-6">
@@ -607,19 +1042,19 @@ function changeDepositPeriod(deposit_period) {
                                     <p class="text-[16px]">Table chart summery</p>
                                     <div
                                         class="flex items-center justify-between mt-[16px] px-[26px] bg-[#EBEBEB] h-[50px] rounded-[8px]">
-                                        <svg class="cursor-pointer" width="22" height="24" viewBox="0 0 22 24"
+                                        <svg onclick="toggleTable()" class="cursor-pointer" id="table_svg" width="22" height="24" viewBox="0 0 22 24"
                                             fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path
                                                 d="M5.40002 7.2H16.6M5.40002 13.6H7.00002M10.2 13.6H11.8M15 13.6H16.6M5.40002 18.4H7.00002M10.2 18.4H11.8M15 18.4H16.6M3.00002 23.2H19C19.4244 23.2 19.8313 23.0314 20.1314 22.7314C20.4315 22.4313 20.6 22.0243 20.6 21.6V2.4C20.6 1.97566 20.4315 1.56869 20.1314 1.26863C19.8313 0.968574 19.4244 0.800003 19 0.800003H3.00002C2.57568 0.800003 2.16871 0.968574 1.86865 1.26863C1.5686 1.56869 1.40002 1.97566 1.40002 2.4V21.6C1.40002 22.0243 1.5686 22.4313 1.86865 22.7314C2.16871 23.0314 2.57568 23.2 3.00002 23.2Z"
                                                 stroke="#61CE70" stroke-opacity="0.933333" stroke-width="2" />
                                         </svg>
-                                        <svg class="cursor-pointer" width="20" height="18" viewBox="0 0 20 18"
+                                        <svg onclick="toggleChart()" class="cursor-pointer" id="chart_svg" width="20" height="18" viewBox="0 0 20 18"
                                             fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path
                                                 d="M14 8.78L18.24 1.45L19.97 2.45L14.74 11.5L8.23 7.75L3.46 16H20V18H0V0H2V14.54L7.5 5L14 8.78Z"
                                                 fill="#B9B9B9" />
                                         </svg>
-                                        <svg class="cursor-pointer" width="20" height="22" viewBox="0 0 20 22"
+                                        <svg onclick="toggleSummary()" id="summary_svg" class="cursor-pointer" width="20" height="22" viewBox="0 0 20 22"
                                             fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path
                                                 d="M4 5C4 4.73478 4.10536 4.48043 4.29289 4.29289C4.48043 4.10536 4.73478 4 5 4H15C15.2652 4 15.5196 4.10536 15.7071 4.29289C15.8946 4.48043 16 4.73478 16 5C16 5.26522 15.8946 5.51957 15.7071 5.70711C15.5196 5.89464 15.2652 6 15 6H5C4.73478 6 4.48043 5.89464 4.29289 5.70711C4.10536 5.51957 4 5.26522 4 5ZM4 9C4 8.73478 4.10536 8.48043 4.29289 8.29289C4.48043 8.10536 4.73478 8 5 8H15C15.2652 8 15.5196 8.10536 15.7071 8.29289C15.8946 8.48043 16 8.73478 16 9C16 9.26522 15.8946 9.51957 15.7071 9.70711C15.5196 9.89464 15.2652 10 15 10H5C4.73478 10 4.48043 9.89464 4.29289 9.70711C4.10536 9.51957 4 9.26522 4 9ZM5 12C4.73478 12 4.48043 12.1054 4.29289 12.2929C4.10536 12.4804 4 12.7348 4 13C4 13.2652 4.10536 13.5196 4.29289 13.7071C4.48043 13.8946 4.73478 14 5 14H15C15.2652 14 15.5196 13.8946 15.7071 13.7071C15.8946 13.5196 16 13.2652 16 13C16 12.7348 15.8946 12.4804 15.7071 12.2929C15.5196 12.1054 15.2652 12 15 12H5ZM4 17C4 16.7348 4.10536 16.4804 4.29289 16.2929C4.48043 16.1054 4.73478 16 5 16H9C9.26522 16 9.51957 16.1054 9.70711 16.2929C9.89464 16.4804 10 16.7348 10 17C10 17.2652 9.89464 17.5196 9.70711 17.7071C9.51957 17.8946 9.26522 18 9 18H5C4.73478 18 4.48043 17.8946 4.29289 17.7071C4.10536 17.5196 4 17.2652 4 17Z"
@@ -632,28 +1067,120 @@ function changeDepositPeriod(deposit_period) {
                                 </div>
                             </div>
                         </div>
+                         <!---Line--->
+                         <div class="mt-[24px] px-6">
+                            <hr class="">
+                        </div>
+                        <!--Summary-->
+                        <div class="mt-6 px-6" style="display: none;"  id="summary_container">
+                            <p class="text-[#132813] text-[24px] mt-2 font-medium">Summary</p>
+                            <div class="text-[16px] mt-4 flex text-left items-center">
+                                <p class="font-bold w-4/12">Initial Deposit :</p>
+                                <p id="summary_initial_deposit" class="font-medium ml-2">$5,000.00</p>
+                            </div>
+                            <div class="text-[16px] flex text-left items-center">
+                                <p class="font-bold w-4/12">Interest Rate :</p>
+                                <p id="summary_interest_rate" class="font-medium ml-2">5%</p>
+                            </div>
+                            <div class="text-[16px] flex text-left items-center">
+                                <p class="font-bold w-4/12">Effective Rate :</p>
+                                <p id="summary_effective_rate" class="font-medium ml-2">5.12%</p>
+                            </div>
+                            <div class="text-[16px] flex text-left items-center">
+                                <p class="font-bold w-4/12">Time :</p>
+                                <p id="summary_time" class="font-medium ml-2">5 Years</p>
+                            </div>
+                            <div class="text-[16px] flex text-left items-center">
+                                <p class="font-bold w-4/12">Compounding :</p>
+                                <p id="summary_compounding" class="font-medium ml-2">Monthly (12/yr)</p>
+                            </div>
+                        </div>
+                         <!---Line--->
+                         <div class="mt-[24px] px-6">
+                            <hr class="">
+                        </div>
                         <!---Yearly Breakdown--->
-                        <p class="pt-10 px-6 text-[#132813] text-[24px] font-medium">Yearly Breakdown</p>
-                        <div class="pt-10 px-6 pb-[31px]">
-                            <table class="border-2 w-full">
-                                <thead class="">
-                                    <tr class="h-[60px]">
-                                        <th class="bg-[#BA924A] w-[151px] text-center text-[#ffffff]">Year</th>
-                                        <th class="bg-[#BA924A] w-[151px] text-left pl-6 text-[#ffffff]">Interest</th>
-                                        <th class="bg-[#132813] w-[151px] text-left pl-6 text-[#ffffff]">Accrued
-                                            interest</th>
-                                        <th class="bg-[#61CE70EE] w-[151px] text-left pl-6 text-[#ffffff]">balance</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr class="h-[45px] bg-[#ffffff]">
-                                        <td class="text-center">1</td>
-                                        <td class="text-left pl-6">$0.00</td>
-                                        <td class="text-left pl-6">$0.00</td>
-                                        <td class="text-left pl-6">$0.00</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div id="breakdown">
+                            <p class="pt-6 px-6 text-[#132813] text-[24px] font-medium"><span id="breakdown_option" class="pr-2">Yearly</span>Breakdown</p>
+                        </div>
+                        <div id="year_table">
+                            <div id="table" class="pt-10 px-6 pb-[31px] relative h-[420px] overflow-y-scroll">
+                                <table class="border-2 w-full">
+                                    <thead class="h-[60px] sticky">
+                                        <tr class="">
+                                            <th id="tyear" class="bg-[#BA924A] w-[151px] text-center text-[#ffffff]">Year</th>
+                                            <th style="display: none" id="tmonth" class="bg-[#BA924A] w-[151px] text-center text-[#ffffff]">Month</th>
+                                            <th class="bg-[#BA924A] w-[151px] text-left pl-6 text-[#ffffff]">Interest</th>
+                                            <th class="bg-[#132813] w-[151px] text-left pl-6 text-[#ffffff]">Accrued
+                                                interest</th>
+                                            <th class="bg-[#61CE70EE] w-[151px] text-left pl-6 text-[#ffffff]">balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody">
+                                        <tr class="h-[45px] border-b bg-[#ffffff]">
+                                            <td class="text-center">0</td>
+                                            <td class="text-left pl-6">-</td>
+                                            <td class="text-left pl-6">-</td>
+                                            <td class="text-left pl-6">$5000.00</td>
+                                        </tr>
+                                        <tr class="h-[45px] border-b bg-[#ffffff]">
+                                            <td class="text-center">1</td>
+                                            <td class="text-left pl-6">$255.81</td>
+                                            <td class="text-left pl-6">$255.81</td>
+                                            <td class="text-left pl-6">$5255.81</td>
+                                        </tr>
+                                        <tr class="h-[45px] border-b bg-[#ffffff]">
+                                            <td class="text-center">2</td>
+                                            <td class="text-left pl-6">$268.90</td>
+                                            <td class="text-left pl-6">$524.71</td>
+                                            <td class="text-left pl-6">$5554.71</td>
+                                        </tr>
+                                        <tr class="h-[45px] border-b bg-[#ffffff]">
+                                            <td class="text-center">3</td>
+                                            <td class="text-left pl-6">$282.65</td>
+                                            <td class="text-left pl-6">$807.36</td>
+                                            <td class="text-left pl-6">$5807.36</td>
+                                        </tr>
+                                        <tr class="h-[45px] border-b bg-[#ffffff]">
+                                            <td class="text-center">4</td>
+                                            <td class="text-left pl-6">$297.12</td>
+                                            <td class="text-left pl-6">$1104.48</td>
+                                            <td class="text-left pl-6">$6104.48</td>
+                                        </tr>
+                                        <tr class="h-[45px] border-b text-[#ffffff] bg-[#132813]">
+                                            <td class="text-center">5</td>
+                                            <td class="text-left pl-6">$312.32</td>
+                                            <td class="text-left pl-6">$1416.79</td>
+                                            <td class="text-left pl-6">$6416.79</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>                                  
+                        </div>
+                        <!--Month table-->
+                        <div id="month_table" style="display: none">
+                            <div id="month_data_table" class="pt-10 px-6 pb-[31px] relative h-[420px] overflow-y-scroll">
+                                <table class="border-2 w-full">
+                                    <thead class="h-[60px] sticky">
+                                        <tr class="">
+                                            <th class="bg-[#BA924A] w-[151px] text-center text-[#ffffff]">Month</th>
+                                            <th class="bg-[#BA924A] w-[151px] text-left pl-6 text-[#ffffff]">Interest</th>
+                                            <th class="bg-[#132813] w-[151px] text-left pl-6 text-[#ffffff]">Accrued
+                                                interest</th>
+                                            <th class="bg-[#61CE70EE] w-[151px] text-left pl-6 text-[#ffffff]">balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="month_tbody">
+                                        <tr class="h-[45px] border-b bg-[#ffffff]">
+                                            
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>                                  
+                        </div>
+                        <!--Chart-->
+                        <div id="chart" style="display: none">
+                            <canvas id="myChart"></canvas>
                         </div>
                     </div>
                 </div>
